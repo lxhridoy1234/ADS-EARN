@@ -61,18 +61,18 @@
 <body>
   <h2>Daily Earn Money</h2>
 
-  <div class="balance-circle"> <span id="balance">0.00</span></div>
+  <div class="balance-circle">৳ <span id="balance">0.00</span></div>
 
   <div class="box-grid">
     <div class="box">Ads Watched<br><span id="views">0</span></div>
-    <div class="box">Todays Earn<br> <span id="todayEarn">0.00</span></div>
+    <div class="box">Today’s Earn<br>৳ <span id="todayEarn">0.00</span></div>
   </div>
 
   <div class="card" id="main-section">
-    <button class="btn" onclick="watchAd()"> Start Earn</button>
+    <button class="btn" onclick="watchAd()">🎬 Start Earn</button>
     <p id="countdown"></p>
-    <button class="btn" onclick="showWithdraw()"> Withdraw</button>
-    <button class="btn" onclick="showReferral()"> Invite Friend</button>
+    <button class="btn" onclick="showWithdraw()">💸 Withdraw</button>
+    <button class="btn" onclick="showReferral()">🤝 Invite Friend</button>
   </div>
 
   <div class="card hidden" id="withdraw-section">
@@ -81,10 +81,10 @@
       <option value="bkash">Bkash</option>
       <option value="nagad">Nagad</option>
     </select>
-    <input type="number" id="amount" placeholder="Enter amount (min 200)"/>
+    <input type="number" id="amount" placeholder="Enter amount (min ৳200)"/>
     <input type="text" id="account" placeholder="Account Number"/>
     <button class="btn" onclick="submitWithdraw()">Withdraw Now</button>
-    <button class="btn back-btn" onclick="goBack()"> Back</button>
+    <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
   </div>
 
   <div class="card hidden" id="referral-section">
@@ -92,8 +92,8 @@
     <p id="refLink" style="word-break:break-all;text-align:center;">
       https://t.me/ads25_income_bot?start=ref
     </p>
-    <button class="btn" onclick="copyReferral()"> Copy</button>
-    <button class="btn back-btn" onclick="goBack()"> Back</button>
+    <button class="btn" onclick="copyReferral()">📋 Copy</button>
+    <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
   </div>
 
   <script>
@@ -117,20 +117,20 @@
     }
 
     function watchAd(){
-      document.getElementById("countdown").innerText=" Please wait 10 seconds...";
+      document.getElementById("countdown").innerText="⏳ Please wait 10 seconds...";
       if(typeof show_9729494==="function") show_9729494();
 
       let time=10;
       const interval=setInterval(()=>{
         time--;
-        document.getElementById("countdown").innerText=` Wait ${time} sec...`;
+        document.getElementById("countdown").innerText=`⏳ Wait ${time} sec...`;
         if(time<=0){
           clearInterval(interval);
-          balance+=0.08;
-          todayEarn+=0.08;
+          balance+=0.05;
+          todayEarn+=0.05;
           views++;
           saveData(); updateUI();
-          document.getElementById("countdown").innerText=" 0.08 Added to your balance!";
+          document.getElementById("countdown").innerText="🎉 ৳0.05 Added to your balance!";
         }
       },1000);
     }
@@ -161,27 +161,27 @@
       const amount=parseFloat(document.getElementById("amount").value);
       const account=document.getElementById("account").value.trim();
 
-      if(amount<200||isNaN(amount)){alert("Minimum withdraw is 200.");return;}
+      if(amount<200||isNaN(amount)){alert("Minimum withdraw is ৳200.");return;}
       if(!account||account.length<6){alert("Enter a valid account number.");return;}
       if(amount>balance){alert("Insufficient balance.");return;}
 
       balance-=amount;
       saveData(); updateUI();
 
-      const message=`\n New Withdraw Request!\n User: ${userName} (ID: ${userId})\n Amount: ${amount}\n Method: ${method}\n Account: ${account}`;
+      const message=`\n🔔 New Withdraw Request!\n👤 User: ${userName} (ID: ${userId})\n💰 Amount: ৳${amount}\n💳 Method: ${method}\n📱 Account: ${account}`;
 
-      fetch(`https://api.telegram.org/7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w/sendMessage`,{
+      fetch(`https://api.telegram.org/bot7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w/sendMessage`,{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({chat_id:"5998034191",text:message})
       });
 
       document.getElementById("withdraw-section").innerHTML=`
-        <h3 style='color:#4b0082;text-align:center;'> Withdraw Request Submitted</h3>
-        <p style='text-align:center;'>Amount: ${amount}</p>
+        <h3 style='color:#4b0082;text-align:center;'>✅ Withdraw Request Submitted</h3>
+        <p style='text-align:center;'>Amount: ৳${amount}</p>
         <p style='text-align:center;'>Method: ${method}</p>
         <p style='text-align:center;'>Account: ${account}</p>
         <p style='text-align:center;'>We will process it shortly.</p>
-        <button class="btn back-btn" onclick="goBack()"> Back</button>
+        <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
       `;
     }
 
