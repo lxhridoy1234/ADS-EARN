@@ -191,9 +191,8 @@
     function watchAd() {
       document.getElementById("claimBtn").classList.add("hidden");
       document.getElementById("countdown").innerText = "⏳ Please wait 10 seconds...";
-      
-      // নতুন ad show
-      if (typeof show_9777736 === "function") { show_9777736(); }
+
+      if (typeof show_9777736 === "function") { show_9777736(); } // show ad once
 
       let countdown = 10;
       const interval = setInterval(() => {
@@ -208,24 +207,12 @@
     }
 
     function claimCoins() {
+      coins += 50;
+      views++;
+      saveData();
+      updateUI();
       document.getElementById("claimBtn").classList.add("hidden");
-      document.getElementById("countdown").innerText = "⏳ Showing ad before claim...";
-      
-      if (typeof show_9777736 === "function") { show_9777736(); }
-
-      let countdown = 10;
-      const interval = setInterval(() => {
-        countdown--;
-        document.getElementById("countdown").innerText = `⏳ Claiming in ${countdown} seconds...`;
-        if (countdown <= 0) {
-          clearInterval(interval);
-          coins += 50;
-          views++;
-          saveData();
-          updateUI();
-          document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
-        }
-      }, 1000);
+      document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
     }
 
     function showWithdraw() {
@@ -276,8 +263,10 @@
       document.getElementById("referral-section").classList.remove("hidden");
       document.getElementById("withdraw-section").classList.add("hidden");
       document.getElementById("ad-section").classList.add("hidden");
+
+      // Updated referral link
       document.getElementById("refLink").innerText =
-        `https://t.me/Open_AI2468_Earn_Bot?start=${userId}`;
+        `https://t.me/ads25_income_bot?start=${userId}`;
     }
 
     function copyReferral() {
