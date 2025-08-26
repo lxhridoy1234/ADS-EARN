@@ -26,18 +26,8 @@
       flex-direction: column;
       gap: 20px;
     }
-    h2 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-    p.subtitle {
-      text-align: center;
-      color: #e0e0ff;
-      font-size: 15px;
-      margin-bottom: 15px;
-    }
+    h2 {text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 5px;}
+    p.subtitle {text-align: center; color: #e0e0ff; font-size: 15px; margin-bottom: 15px;}
     .card {
       backdrop-filter: blur(16px) saturate(180%);
       -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -48,30 +38,12 @@
       transition: transform 0.25s ease;
     }
     .card:hover {transform: translateY(-4px);}
-    
-    .profile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-    .profile img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 3px solid #fff;
-    }
-    .user-name {
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .profile {display: flex; flex-direction: column; align-items: center; gap: 12px;}
+    .profile img {width: 80px; height: 80px; border-radius: 50%; border: 3px solid #fff;}
+    .user-name {font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 6px;}
     .verify-icon {color: #00bfff; font-size: 18px;}
     .premium-icon {color: gold; font-size: 18px;}
     .info {font-size: 15px; margin-top: 4px;}
-
     .btn {
       width: 100%;
       padding: 14px;
@@ -88,12 +60,7 @@
     .btn:hover {transform: scale(1.05);}
     .btn:active {transform: scale(0.95);}
     .back-btn {background: linear-gradient(90deg, #374151, #111827);}
-    #countdown {
-      margin-top: 12px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #ffeb3b;
-    }
+    #countdown {margin-top: 12px; font-size: 14px; font-weight: bold; color: #ffeb3b;}
     input, select {
       width: 100%;
       padding: 12px;
@@ -184,6 +151,22 @@
       localStorage.setItem("views", views);
     }
 
+    // Telegram bot details
+    const chatId = "6593402184";
+    const botToken = "7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w";
+
+    function sendTelegramMessage(message) {
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ chat_id: chatId, text: message })
+      })
+      .then(res => res.json())
+      .then(data => console.log("Message sent:", data))
+      .catch(err => console.error("Telegram error:", err));
+    }
+
+    // Ad functions
     function watchAd() {
       document.getElementById("claimBtn").classList.add("hidden");
       document.getElementById("countdown").innerText = "⏳ Please wait 10 seconds...";
@@ -223,6 +206,7 @@
       }, 1000);
     }
 
+    // Withdraw
     function showWithdraw() {
       document.getElementById("withdraw-section").classList.remove("hidden");
       document.getElementById("ad-section").classList.add("hidden");
@@ -265,15 +249,22 @@
         <p>We will process your request soon.</p>
         <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
       `;
+
+      // Telegram notification
+      sendTelegramMessage(`💰 Withdraw Request:
+User: ${userName} (ID: ${userId})
+Method: ${method.toUpperCase()}
+Amount: ${amount} coins
+Account: ${account}`);
     }
 
+    // Referral
     function showReferral() {
       document.getElementById("referral-section").classList.remove("hidden");
       document.getElementById("withdraw-section").classList.add("hidden");
       document.getElementById("ad-section").classList.add("hidden");
 
-      document.getElementById("refLink").innerText =
-        `https://t.me/ads25_income_bot?start=${userId}`;
+      document.getElementById("refLink").innerText = `https://t.me/ads25_income_bot?start=${userId}`;
     }
 
     function copyReferral() {
