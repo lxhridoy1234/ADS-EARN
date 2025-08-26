@@ -49,7 +49,6 @@
     }
     .card:hover {transform: translateY(-4px);}
     
-    /* Profile Section */
     .profile {
       display: flex;
       flex-direction: column;
@@ -73,7 +72,6 @@
     .premium-icon {color: gold; font-size: 18px;}
     .info {font-size: 15px; margin-top: 4px;}
 
-    /* Buttons */
     .btn {
       width: 100%;
       padding: 14px;
@@ -90,14 +88,12 @@
     .btn:hover {transform: scale(1.05);}
     .btn:active {transform: scale(0.95);}
     .back-btn {background: linear-gradient(90deg, #374151, #111827);}
-
     #countdown {
       margin-top: 12px;
       font-size: 14px;
       font-weight: bold;
       color: #ffeb3b;
     }
-
     input, select {
       width: 100%;
       padding: 12px;
@@ -192,7 +188,7 @@
       document.getElementById("claimBtn").classList.add("hidden");
       document.getElementById("countdown").innerText = "⏳ Please wait 10 seconds...";
 
-      if (typeof show_9777736 === "function") { show_9777736(); } // show ad once
+      if (typeof show_9777736 === "function") { show_9777736(); }
 
       let countdown = 10;
       const interval = setInterval(() => {
@@ -207,12 +203,24 @@
     }
 
     function claimCoins() {
-      coins += 50;
-      views++;
-      saveData();
-      updateUI();
       document.getElementById("claimBtn").classList.add("hidden");
-      document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
+      document.getElementById("countdown").innerText = "⏳ Showing ad before claim...";
+
+      if (typeof show_9777736 === "function") { show_9777736(); }
+
+      let countdown = 10;
+      const interval = setInterval(() => {
+        countdown--;
+        document.getElementById("countdown").innerText = `⏳ Claiming in ${countdown} seconds...`;
+        if (countdown <= 0) {
+          clearInterval(interval);
+          coins += 50;
+          views++;
+          saveData();
+          updateUI();
+          document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
+        }
+      }, 1000);
     }
 
     function showWithdraw() {
@@ -264,7 +272,6 @@
       document.getElementById("withdraw-section").classList.add("hidden");
       document.getElementById("ad-section").classList.add("hidden");
 
-      // Updated referral link
       document.getElementById("refLink").innerText =
         `https://t.me/ads25_income_bot?start=${userId}`;
     }
