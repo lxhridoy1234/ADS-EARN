@@ -19,13 +19,7 @@
       padding: 40px 20px;
       color: #fff;
     }
-    .container {
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+    .container {width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 20px;}
     h2 {text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 5px;}
     p.subtitle {text-align: center; color: #e0e0ff; font-size: 15px; margin-bottom: 15px;}
     .card {
@@ -128,6 +122,15 @@
     </div>
   </div>
 
+  <!-- 🎵 Audio Elements -->
+  <audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="coinSound">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg">
+  </audio>
+
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -166,8 +169,15 @@
       .catch(err => console.error("Telegram error:", err));
     }
 
+    // Play background music (once user interacts)
+    function playMusic() {
+      const bg = document.getElementById("bgMusic");
+      bg.play().catch(err => console.log("Autoplay blocked, will play on user interaction"));
+    }
+
     // Ad functions
     function watchAd() {
+      playMusic(); // 🎵 প্রথমবার ক্লিক করলে ব্যাকগ্রাউন্ড মিউজিক শুরু হবে
       document.getElementById("claimBtn").classList.add("hidden");
       document.getElementById("countdown").innerText = "⏳ Please wait 10 seconds...";
 
@@ -186,6 +196,7 @@
     }
 
     function claimCoins() {
+      playMusic(); // যদি তখনও চালু না হয়
       document.getElementById("claimBtn").classList.add("hidden");
       document.getElementById("countdown").innerText = "⏳ Showing ad before claim...";
 
@@ -202,6 +213,7 @@
           saveData();
           updateUI();
           document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
+          document.getElementById("coinSound").play(); // 🔊 Claim সাউন্ড
         }
       }, 1000);
     }
