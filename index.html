@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
   <title>Ads Income Place</title>
@@ -25,7 +25,7 @@
     .card {
       backdrop-filter: blur(16px) saturate(180%);
       -webkit-backdrop-filter: blur(16px) saturate(180%);
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 20px;
       padding: 25px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.25);
@@ -51,8 +51,8 @@
       background: linear-gradient(90deg, #7c3aed, #4f46e5);
       transition: all 0.3s ease;
     }
-    .btn:hover {transform: scale(1.05);}
-    .btn:active {transform: scale(0.95);}
+    .btn:hover {transform: scale(1.03);}
+    .btn:active {transform: scale(0.98);}
     .back-btn {background: linear-gradient(90deg, #374151, #111827);}
     #countdown {margin-top: 12px; font-size: 14px; font-weight: bold; color: #ffeb3b;}
     input, select {
@@ -65,6 +65,7 @@
       font-size: 15px;
     }
     .hidden {display: none;}
+    .muted {opacity: 0.6; pointer-events: none;}
   </style>
 </head>
 <body>
@@ -88,7 +89,7 @@
 
     <!-- Ad Section -->
     <div class="card" id="ad-section">
-      <button class="btn" onclick="watchAd()">🎬 Watch Ad</button>
+      <button class="btn" id="watchBtn" onclick="watchAd()">🎬 Watch Ad</button>
       <button class="btn hidden" id="claimBtn" onclick="claimCoins()">🎁 Claim Coin</button>
       <p id="countdown"></p>
     </div>
@@ -108,6 +109,7 @@
       </select>
       <input type="number" id="coinAmount" placeholder="Enter Coin Amount" oninput="calculateBDT()">
       <p id="bdtValue">You will get: 0 BDT</p>
+      <p style="color:#ffeb3b; font-size:13px;">⚠️ Minimum Withdraw: 100000 coins</p>
       <input type="text" id="accountNumber" placeholder="Enter your account number">
       <button class="btn" onclick="submitWithdraw()">Submit</button>
       <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
@@ -122,28 +124,34 @@
     </div>
   </div>
 
-  <!-- 🎵 Audio Elements -->
-  <audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
-  </audio>
-
+  <!-- শুধুমাত্র Claim সাউন্ড -->
   <audio id="coinSound">
     <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg">
   </audio>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    // === CONFIG ===
+    const AD_DURATION = 15; // seconds (আপনি বললেন 15 সেকেন্ড)
+    const REWARD = 50;
 
-    const userName = tg.initDataUnsafe?.user?.first_name || "Unknown";
-    const userId = tg.initDataUnsafe?.user?.id || "Unknown";
-    const photoUrl = tg.initDataUnsafe?.user?.photo_url || "https://telegram.org/img/t_logo.png";
+    // === Telegram safe init (Telegram না থাকলে crash করবে না) ===
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    if (tg && typeof tg.expand === 'function') {
+      try { tg.expand(); } catch (e) { console.log('tg.expand error', e); }
+    }
+
+    const userName = tg?.initDataUnsafe?.user?.first_name || "Unknown";
+    const userId = tg?.initDataUnsafe?.user?.id || "unknown_user";
+    const photoUrl = tg?.initDataUnsafe?.user?.photo_url || "https://telegram.org/img/t_logo.png";
 
     document.getElementById("user-name").innerText = userName;
     document.getElementById("user-photo").src = photoUrl;
 
+    // === State ===
     let coins = parseInt(localStorage.getItem("coins")) || 0;
     let views = parseInt(localStorage.getItem("views")) || 0;
+    let adTimer = null;
+    let claimTimer = null;
 
     function updateUI() {
       document.getElementById("balance").innerText = coins;
@@ -154,71 +162,104 @@
       localStorage.setItem("views", views);
     }
 
-    // Telegram bot details
+    // Telegram bot details (frontend token is insecure — consider moving to server)
     const chatId = "6593402184";
     const botToken = "7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w";
 
     function sendTelegramMessage(message) {
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ chat_id: chatId, text: message })
-      })
-      .then(res => res.json())
-      .then(data => console.log("Message sent:", data))
-      .catch(err => console.error("Telegram error:", err));
+      // try/catch to avoid uncaught errors
+      try {
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ chat_id: chatId, text: message })
+        })
+        .then(res => res.json())
+        .then(data => console.log("Message sent:", data))
+        .catch(err => console.error("Telegram error:", err));
+      } catch (e) {
+        console.error("sendTelegramMessage failed", e);
+      }
     }
 
-    // Play background music (once user interacts)
-    function playMusic() {
-      const bg = document.getElementById("bgMusic");
-      bg.play().catch(err => console.log("Autoplay blocked, will play on user interaction"));
+    // Helper to safely call ad SDK if available
+    function tryShowAd() {
+      if (typeof window.show_9777736 === "function") {
+        try { window.show_9777736(); } catch(e){ console.log('ad sdk error', e); }
+      }
     }
 
-    // Ad functions
+    // === Ad / Claim logic ===
     function watchAd() {
-      playMusic(); // 🎵 প্রথমবার ক্লিক করলে ব্যাকগ্রাউন্ড মিউজিক শুরু হবে
-      document.getElementById("claimBtn").classList.add("hidden");
-      document.getElementById("countdown").innerText = "⏳ Please wait 10 seconds...";
+      const watchBtn = document.getElementById('watchBtn');
+      const claimBtn = document.getElementById('claimBtn');
+      const countdownEl = document.getElementById('countdown');
 
-      if (typeof show_9777736 === "function") { show_9777736(); }
+      // disable watch while counting
+      watchBtn.disabled = true;
+      watchBtn.classList.add('muted');
+      claimBtn.classList.add('hidden');
+      countdownEl.innerText = `⏳ Please wait ${AD_DURATION} seconds...`;
 
-      let countdown = 10;
-      const interval = setInterval(() => {
-        countdown--;
-        document.getElementById("countdown").innerText = `⏳ Please wait ${countdown} seconds...`;
-        if (countdown <= 0) {
-          clearInterval(interval);
-          document.getElementById("countdown").innerText = "✅ Ad watched. Now claim your coin!";
-          document.getElementById("claimBtn").classList.remove("hidden");
+      tryShowAd();
+
+      let remaining = AD_DURATION;
+      adTimer = setInterval(() => {
+        remaining--;
+        countdownEl.innerText = `⏳ Please wait ${remaining} seconds...`;
+        if (remaining <= 0) {
+          clearInterval(adTimer);
+          adTimer = null;
+          countdownEl.innerText = "✅ Ad watched. Now claim your coin!";
+          claimBtn.classList.remove('hidden');
+          // re-enable watch button (optional: keep disabled until claim to prevent abuse)
+          watchBtn.disabled = false;
+          watchBtn.classList.remove('muted');
         }
       }, 1000);
     }
 
     function claimCoins() {
-      playMusic(); // যদি তখনও চালু না হয়
-      document.getElementById("claimBtn").classList.add("hidden");
-      document.getElementById("countdown").innerText = "⏳ Showing ad before claim...";
+      const claimBtn = document.getElementById('claimBtn');
+      const watchBtn = document.getElementById('watchBtn');
+      const countdownEl = document.getElementById('countdown');
 
-      if (typeof show_9777736 === "function") { show_9777736(); }
+      // prevent double claim
+      claimBtn.disabled = true;
+      claimBtn.classList.add('muted');
+      countdownEl.innerText = `⏳ Claiming in ${AD_DURATION} seconds...`;
 
-      let countdown = 10;
-      const interval = setInterval(() => {
-        countdown--;
-        document.getElementById("countdown").innerText = `⏳ Claiming in ${countdown} seconds...`;
-        if (countdown <= 0) {
-          clearInterval(interval);
-          coins += 50;
+      tryShowAd();
+
+      let remaining = AD_DURATION;
+      claimTimer = setInterval(() => {
+        remaining--;
+        countdownEl.innerText = `⏳ Claiming in ${remaining} seconds...`;
+        if (remaining <= 0) {
+          clearInterval(claimTimer);
+          claimTimer = null;
+          coins += REWARD;
           views++;
           saveData();
           updateUI();
-          document.getElementById("countdown").innerText = "🎉 You earned 50 coins!";
-          document.getElementById("coinSound").play(); // 🔊 Claim সাউন্ড
+          countdownEl.innerText = "🎉 You earned 50 coins!";
+          // play coin sound (user interacted by clicking claim)
+          const coin = document.getElementById('coinSound');
+          if (coin) {
+            coin.play().catch(e => console.log('Audio play blocked or error', e));
+          }
+          // reset claim button state
+          claimBtn.disabled = false;
+          claimBtn.classList.add('hidden');
+          claimBtn.classList.remove('muted');
+          // optionally re-enable watch
+          watchBtn.disabled = false;
+          watchBtn.classList.remove('muted');
         }
       }, 1000);
     }
 
-    // Withdraw
+    // === Withdraw / Referral ===
     function showWithdraw() {
       document.getElementById("withdraw-section").classList.remove("hidden");
       document.getElementById("ad-section").classList.add("hidden");
@@ -262,7 +303,7 @@
         <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
       `;
 
-      // Telegram notification
+      // Telegram notification (best effort)
       sendTelegramMessage(`💰 Withdraw Request:
 User: ${userName} (ID: ${userId})
 Method: ${method.toUpperCase()}
@@ -270,7 +311,6 @@ Amount: ${amount} coins
 Account: ${account}`);
     }
 
-    // Referral
     function showReferral() {
       document.getElementById("referral-section").classList.remove("hidden");
       document.getElementById("withdraw-section").classList.add("hidden");
@@ -281,8 +321,19 @@ Account: ${account}`);
 
     function copyReferral() {
       const ref = document.getElementById("refLink").innerText;
-      navigator.clipboard.writeText(ref);
-      alert("Referral link copied!");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ref).then(() => alert("Referral link copied!")).catch(() => fallbackCopy(ref));
+      } else {
+        fallbackCopy(ref);
+      }
+      function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); alert('Referral link copied!'); } catch(e){ alert('Copy failed, select and copy manually.'); }
+        ta.remove();
+      }
     }
 
     function goBack() {
@@ -292,6 +343,7 @@ Account: ${account}`);
       updateUI();
     }
 
+    // initialize UI
     updateUI();
   </script>
 </body>
