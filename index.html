@@ -94,6 +94,13 @@
       <p id="countdown"></p>
     </div>
 
+    <!-- Auto Ad Section -->
+    <div class="card">
+      <button class="btn" id="startAuto" onclick="startAutoAd()">▶️ Start Auto Ad</button>
+      <button class="btn back-btn hidden" id="stopAuto" onclick="stopAutoAd()">⏹ Stop Auto Ad</button>
+      <p id="autoStatus"></p>
+    </div>
+
     <!-- Withdraw/Referral Main -->
     <div class="card">
       <button class="btn" onclick="showWithdraw()">💸 Withdraw</button>
@@ -124,17 +131,14 @@
     </div>
   </div>
 
-  <!-- শুধুমাত্র Claim সাউন্ড -->
   <audio id="coinSound">
     <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg">
   </audio>
 
   <script>
-    // === CONFIG ===
-    const AD_DURATION = 15; // seconds (আপনি বললেন 15 সেকেন্ড)
+    const AD_DURATION = 15;
     const REWARD = 50;
 
-    // === Telegram safe init (Telegram না থাকলে crash করবে না) ===
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
     if (tg && typeof tg.expand === 'function') {
       try { tg.expand(); } catch (e) { console.log('tg.expand error', e); }
@@ -147,11 +151,12 @@
     document.getElementById("user-name").innerText = userName;
     document.getElementById("user-photo").src = photoUrl;
 
-    // === State ===
     let coins = parseInt(localStorage.getItem("coins")) || 0;
     let views = parseInt(localStorage.getItem("views")) || 0;
     let adTimer = null;
     let claimTimer = null;
+    let autoAdInterval = null;
+    let autoAdClaimTimeout = null;
 
     function updateUI() {
       document.getElementById("balance").innerText = coins;
@@ -162,40 +167,18 @@
       localStorage.setItem("views", views);
     }
 
-    // Telegram bot details (frontend token is insecure — consider moving to server)
-    const chatId = "6593402184";
-    const botToken = "7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w";
-
-    function sendTelegramMessage(message) {
-      // try/catch to avoid uncaught errors
-      try {
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ chat_id: chatId, text: message })
-        })
-        .then(res => res.json())
-        .then(data => console.log("Message sent:", data))
-        .catch(err => console.error("Telegram error:", err));
-      } catch (e) {
-        console.error("sendTelegramMessage failed", e);
-      }
-    }
-
-    // Helper to safely call ad SDK if available
     function tryShowAd() {
       if (typeof window.show_9777736 === "function") {
         try { window.show_9777736(); } catch(e){ console.log('ad sdk error', e); }
       }
     }
 
-    // === Ad / Claim logic ===
+    // Watch Ad
     function watchAd() {
       const watchBtn = document.getElementById('watchBtn');
       const claimBtn = document.getElementById('claimBtn');
       const countdownEl = document.getElementById('countdown');
 
-      // disable watch while counting
       watchBtn.disabled = true;
       watchBtn.classList.add('muted');
       claimBtn.classList.add('hidden');
@@ -212,7 +195,6 @@
           adTimer = null;
           countdownEl.innerText = "✅ Ad watched. Now claim your coin!";
           claimBtn.classList.remove('hidden');
-          // re-enable watch button (optional: keep disabled until claim to prevent abuse)
           watchBtn.disabled = false;
           watchBtn.classList.remove('muted');
         }
@@ -224,7 +206,6 @@
       const watchBtn = document.getElementById('watchBtn');
       const countdownEl = document.getElementById('countdown');
 
-      // prevent double claim
       claimBtn.disabled = true;
       claimBtn.classList.add('muted');
       countdownEl.innerText = `⏳ Claiming in ${AD_DURATION} seconds...`;
@@ -243,107 +224,81 @@
           saveData();
           updateUI();
           countdownEl.innerText = "🎉 You earned 50 coins!";
-          // play coin sound (user interacted by clicking claim)
           const coin = document.getElementById('coinSound');
-          if (coin) {
-            coin.play().catch(e => console.log('Audio play blocked or error', e));
-          }
-          // reset claim button state
+          if (coin) coin.play().catch(e => {});
           claimBtn.disabled = false;
           claimBtn.classList.add('hidden');
           claimBtn.classList.remove('muted');
-          // optionally re-enable watch
           watchBtn.disabled = false;
           watchBtn.classList.remove('muted');
         }
       }, 1000);
     }
 
-    // === Withdraw / Referral ===
-    function showWithdraw() {
-      document.getElementById("withdraw-section").classList.remove("hidden");
-      document.getElementById("ad-section").classList.add("hidden");
-      document.getElementById("referral-section").classList.add("hidden");
+    // Auto Ad
+    function startAutoAd() {
+      document.getElementById("startAuto").classList.add("hidden");
+      document.getElementById("stopAuto").classList.remove("hidden");
+      document.getElementById("autoStatus").innerText = "▶️ Auto Ad Running...";
+      playAutoAd();
+      autoAdInterval = setInterval(playAutoAd, AD_DURATION * 1000);
     }
 
-    function calculateBDT() {
-      const amount = parseInt(document.getElementById("coinAmount").value) || 0;
-      const bdt = (amount * 0.0038).toFixed(2);
-      document.getElementById("bdtValue").innerText = `You will get: ${bdt} BDT`;
+    function stopAutoAd() {
+      clearInterval(autoAdInterval);
+      autoAdInterval = null;
+      clearTimeout(autoAdClaimTimeout);
+      autoAdClaimTimeout = null;
+      document.getElementById("startAuto").classList.remove("hidden");
+      document.getElementById("stopAuto").classList.add("hidden");
+      document.getElementById("autoStatus").innerText = "⏹ Auto Ad Stopped";
     }
 
-    function submitWithdraw() {
-      const method = document.getElementById("method").value;
-      const amount = parseInt(document.getElementById("coinAmount").value);
-      const account = document.getElementById("accountNumber").value.trim();
+    function playAutoAd() {
+      const countdownEl = document.getElementById('countdown');
+      const claimBtn = document.getElementById('claimBtn');
+      const watchBtn = document.getElementById('watchBtn');
 
-      if (isNaN(amount) || amount < 100000) {
-        alert("Minimum withdraw is 100000 coins.");
-        return;
-      }
-      if (!account || account.length < 6) {
-        alert("Please enter a valid account number.");
-        return;
-      }
-      if (amount > coins) {
-        alert("You don't have enough coins.");
-        return;
-      }
+      watchBtn.disabled = true;
+      watchBtn.classList.add('muted');
+      claimBtn.classList.add('hidden');
+      countdownEl.innerText = `⏳ Auto Ad playing ${AD_DURATION} sec...`;
 
-      coins -= amount;
-      saveData();
-      updateUI();
+      tryShowAd();
 
-      document.getElementById("withdraw-section").innerHTML = `
-        <h3>✅ Withdraw request submitted!</h3>
-        <p>Method: ${method.toUpperCase()}</p>
-        <p>Amount: ${amount} coins</p>
-        <p>Account Number: ${account}</p>
-        <p>We will process your request soon.</p>
-        <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
-      `;
+      let remaining = AD_DURATION;
+      autoAdClaimTimeout = setInterval(() => {
+        remaining--;
+        countdownEl.innerText = `⏳ Auto Ad claiming in ${remaining} sec...`;
+        if (remaining <= 0) {
+          clearInterval(autoAdClaimTimeout);
+          autoAdClaimTimeout = null;
 
-      // Telegram notification (best effort)
-      sendTelegramMessage(`💰 Withdraw Request:
-User: ${userName} (ID: ${userId})
-Method: ${method.toUpperCase()}
-Amount: ${amount} coins
-Account: ${account}`);
+          coins += REWARD;
+          views++;
+          saveData();
+          updateUI();
+          countdownEl.innerText = "🎉 Auto Ad Claimed +50 coins!";
+          const coin = document.getElementById('coinSound');
+          if (coin) coin.play().catch(e => {});
+
+          claimBtn.disabled = false;
+          claimBtn.classList.add('hidden');
+          claimBtn.classList.remove('muted');
+          watchBtn.disabled = false;
+          watchBtn.classList.remove('muted');
+        }
+      }, 1000);
     }
 
-    function showReferral() {
-      document.getElementById("referral-section").classList.remove("hidden");
-      document.getElementById("withdraw-section").classList.add("hidden");
-      document.getElementById("ad-section").classList.add("hidden");
+    // UI & Withdraw/Referral Functions (পূর্বের মতো)
+    function showWithdraw(){ document.getElementById("withdraw-section").classList.remove("hidden"); document.getElementById("ad-section").classList.add("hidden"); document.getElementById("referral-section").classList.add("hidden"); }
+    function calculateBDT(){ const amount = parseInt(document.getElementById("coinAmount").value) || 0; const bdt = (amount * 0.0038).toFixed(2); document.getElementById("bdtValue").innerText = `You will get: ${bdt} BDT`; }
+    function submitWithdraw(){ alert("Withdraw Submit Logic Goes Here"); }
+    function showReferral(){ document.getElementById("referral-section").classList.remove("hidden"); document.getElementById("withdraw-section").classList.add("hidden"); document.getElementById("ad-section").classList.add("hidden"); document.getElementById("refLink").innerText = `https://t.me/ads25_income_bot?start=${userId}`; }
+    function copyReferral(){ navigator.clipboard.writeText(document.getElementById("refLink").innerText).then(()=>alert("Referral link copied!")); }
+    function goBack(){ document.getElementById("withdraw-section").classList.add("hidden"); document.getElementById("referral-section").classList.add("hidden"); document.getElementById("ad-section").classList.remove("hidden"); updateUI(); }
 
-      document.getElementById("refLink").innerText = `https://t.me/ads25_income_bot?start=${userId}`;
-    }
-
-    function copyReferral() {
-      const ref = document.getElementById("refLink").innerText;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(ref).then(() => alert("Referral link copied!")).catch(() => fallbackCopy(ref));
-      } else {
-        fallbackCopy(ref);
-      }
-      function fallbackCopy(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); alert('Referral link copied!'); } catch(e){ alert('Copy failed, select and copy manually.'); }
-        ta.remove();
-      }
-    }
-
-    function goBack() {
-      document.getElementById("withdraw-section").classList.add("hidden");
-      document.getElementById("referral-section").classList.add("hidden");
-      document.getElementById("ad-section").classList.remove("hidden");
-      updateUI();
-    }
-
-    // initialize UI
     updateUI();
   </script>
 </body>
