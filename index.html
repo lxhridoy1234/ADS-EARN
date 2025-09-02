@@ -106,7 +106,7 @@
 <body>
   <div class="container">
     <h2>🎥 ADS INCOME PLACE</h2>
-    <p class="subtitle">Earn 50 coins after ad + claim</p>
+    <p class="subtitle">Earn 50 coins = 0.05 BDT after ad + claim</p>
 
     <!-- Profile Card -->
     <div class="card" id="profile">
@@ -184,6 +184,12 @@
     document.getElementById("user-name").innerText = userName;
     document.getElementById("user-photo").src = photoUrl;
 
+    // === Conversion System ===
+    const COIN_TO_BDT = 0.001; // 1 coin = 0.001 BDT
+    const REWARD = 50; // প্রতি অ্যাডে কয়েন
+    const REWARD_BDT = (REWARD * COIN_TO_BDT).toFixed(2); // 50 coin = 0.05 BDT
+    const MIN_WITHDRAW = 100000;
+
     // State
     let coins = parseInt(localStorage.getItem("coins")) || 0;
     let views = parseInt(localStorage.getItem("views")) || 0;
@@ -219,7 +225,7 @@
       }
     }
 
-    const AD_DURATION=15, REWARD=50;
+    const AD_DURATION=15;
 
     function watchAd(){
       const watchBtn=document.getElementById('watchBtn');
@@ -266,7 +272,7 @@
           views++;
           saveData();
           updateUI();
-          countdownEl.innerText="🎉 You earned 50 coins!";
+          countdownEl.innerText=`🎉 You earned ${REWARD} coins (≈ ${REWARD_BDT} BDT)!`;
           const coin=document.getElementById('coinSound');
           if(coin){ coin.play().catch(()=>{}); }
           claimBtn.disabled=false;
@@ -285,26 +291,27 @@
     }
     function calculateBDT(){
       const amount=parseInt(document.getElementById("coinAmount").value)||0;
-      const bdt=(amount*0.0038).toFixed(2);
+      const bdt=(amount*COIN_TO_BDT).toFixed(2);
       document.getElementById("bdtValue").innerText=`You will get: ${bdt} BDT`;
     }
     function submitWithdraw(){
       const method=document.getElementById("method").value;
       const amount=parseInt(document.getElementById("coinAmount").value);
       const account=document.getElementById("accountNumber").value.trim();
-      if(isNaN(amount)||amount<100000){ alert("Minimum withdraw is 100000 coins."); return;}
+      if(isNaN(amount)||amount<MIN_WITHDRAW){ alert(`Minimum withdraw is ${MIN_WITHDRAW} coins.`); return;}
       if(!account||account.length<6){ alert("Please enter a valid account number."); return;}
       if(amount>coins){ alert("You don't have enough coins."); return;}
       coins-=amount; saveData(); updateUI();
+      const bdtValue = (amount*COIN_TO_BDT).toFixed(2);
       document.getElementById("withdraw-section").innerHTML=`
         <h3>✅ Withdraw request submitted!</h3>
         <p>Method: ${method.toUpperCase()}</p>
-        <p>Amount: ${amount} coins</p>
+        <p>Amount: ${amount} coins (~ ${bdtValue} BDT)</p>
         <p>Account Number: ${account}</p>
         <p>We will process your request soon.</p>
         <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
       `;
-      sendTelegramMessage(`💰 Withdraw Request:\nUser: ${userName} (ID: ${userId})\nMethod: ${method.toUpperCase()}\nAmount: ${amount} coins\nAccount: ${account}`);
+      sendTelegramMessage(`💰 Withdraw Request:\nUser: ${userName} (ID: ${userId})\nMethod: ${method.toUpperCase()}\nAmount: ${amount} coins (~ ${bdtValue} BDT)\nAccount: ${account}`);
     }
 
     function showReferral(){
