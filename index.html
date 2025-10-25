@@ -2,101 +2,352 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8" />
+  <title>Ads Income Place</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Join HRIDOY CYBER ZONE</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="//libtl.com/sdk.js" data-zone="9777736" data-sdk="show_9777736"></script>
+
   <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
     body {
-      background: linear-gradient(135deg, #1f1c2c, #928dab);
-      color: white;
-      font-family: 'Poppins', sans-serif;
-      text-align: center;
-      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+      color: #fff;
+    }
+    .container {width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 20px;}
+    h2 {text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 5px;}
+    .card {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      transition: transform 0.25s ease;
+    }
+    .card:hover {transform: translateY(-4px);}
+    .profile {display: flex; flex-direction: column; align-items: center; gap: 12px;}
+    .profile img {width: 80px; height: 80px; border-radius: 50%; border: 3px solid #fff;}
+    .user-name {font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 6px;}
+    .verify-icon {color: #00bfff; font-size: 18px;}
+    .premium-icon {color: gold; font-size: 18px;}
+    .info {font-size: 15px; margin-top: 4px;}
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      color: #fff;
+      background: linear-gradient(90deg, #7c3aed, #4f46e5);
+      transition: all 0.3s ease;
+    }
+    .btn:hover {transform: scale(1.03);}
+    .btn:active {transform: scale(0.98);}
+    .back-btn {background: linear-gradient(90deg, #374151, #111827);}
+    #countdown {margin-top: 12px; font-size: 14px; font-weight: bold; color: #ffeb3b;}
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 15px;
+    }
+    .hidden {display: none;}
+    .muted {opacity: 0.6; pointer-events: none;}
+
+    /* Notice Popup */
+    #noticeOverlay {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.65);
+      display: none;
       justify-content: center;
       align-items: center;
+      z-index: 9999;
     }
-
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-      width: 85%;
-      max-width: 400px;
-      backdrop-filter: blur(10px);
-      animation: fadeIn 1s ease;
+    .notice-card {
+      background:#fff;
+      color:#111;
+      width:90%;
+      max-width:380px;
+      padding:25px 20px 30px;
+      border-radius:16px;
+      text-align:center;
+      position:relative;
+      box-shadow:0 8px 25px rgba(0,0,0,0.25);
     }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 15px;
+    .notice-card p {
+      font-size:16px; color:#333; margin-bottom:20px; line-height:1.5;
     }
-
-    button {
-      background: #00ffcc;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      margin: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
+    .close-btn {
+      position:absolute;
+      top:10px; right:12px;
+      font-size:20px;
+      font-weight:bold;
+      color:#666;
+      cursor:pointer;
     }
-
-    button:hover {
-      transform: scale(1.05);
-      background: #00e6b3;
-    }
-
-    #welcome {
-      display: none;
-      animation: fadeIn 1s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .close-btn:hover { color:#000; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>🎥 ADS INCOME PLACE</h2>
 
-  <div class="card" id="joinCard">
-    <h1>Join HRIDOY CYBER ZONE</h1>
-    <p>আমাদের Telegram গ্রুপে জয়েন করুন 👇</p>
-    <button id="joinBtn">Join Group</button>
-    <button id="checkBtn">Check Join</button>
+    <!-- Profile Card -->
+    <div class="card" id="profile">
+      <div class="profile">
+        <img id="user-photo" src="https://telegram.org/img/t_logo.png" alt="Profile">
+        <div class="user-name">
+          <span class="verify-icon">✔️</span>
+          <span id="user-name">Loading...</span>
+          <span class="premium-icon">⭐</span>
+        </div>
+        <div class="info"><b>Balance:</b> <span id="balance">0</span> coins</div>
+        <div class="info"><b>Ads Watched:</b> <span id="views">0</span></div>
+      </div>
+    </div>
+
+    <!-- Ad Section -->
+    <div class="card" id="ad-section">
+      <button class="btn" id="watchBtn" onclick="watchAd()">🎬 Watch Ad</button>
+      <button class="btn hidden" id="claimBtn" onclick="claimCoins()">🎁 Claim Coin</button>
+      <p id="countdown"></p>
+    </div>
+
+    <!-- Withdraw/Referral Main -->
+    <div class="card">
+      <button class="btn" onclick="showWithdraw()">💸 Withdraw</button>
+      <button class="btn" onclick="showReferral()">🤝 Refer</button>
+    </div>
+
+    <!-- Withdraw Section -->
+    <div class="card hidden" id="withdraw-section">
+      <h3>Withdraw Coins</h3>
+      <select id="method">
+        <option value="bkash">Bkash</option>
+        <option value="nagad">Nagad</option>
+      </select>
+      <input type="number" id="coinAmount" placeholder="Enter Coin Amount" oninput="calculateBDT()">
+      <p id="bdtValue">You will get: 0 BDT</p>
+      <p style="color:#ffeb3b; font-size:13px;">⚠️ Minimum Withdraw: 100000 coins</p>
+      <input type="text" id="accountNumber" placeholder="Enter your account number">
+      <button class="btn" onclick="submitWithdraw()">Submit</button>
+      <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
+    </div>
+
+    <!-- Referral Section -->
+    <div class="card hidden" id="referral-section">
+      <h3>Your Referral Link</h3>
+      <p id="refLink">https://t.me/ads25_income_bot?start=ref</p>
+      <button class="btn" onclick="copyReferral()">☕ Copy</button>
+      <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
+    </div>
   </div>
 
-  <div class="card" id="welcome">
-    <h1>🎉 Welcome to HRIDOY CYBER ZONE 🎉</h1>
-    <p>ধন্যবাদ আমাদের গ্রুপে যোগ দেওয়ার জন্য 💖</p>
+  <!-- Claim Sound -->
+  <audio id="coinSound">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Notice Overlay -->
+  <div id="noticeOverlay">
+    <div class="notice-card">
+      <span class="close-btn" onclick="closeNotice()">✖</span>
+      <p>আসসালামু আলাইকুম প্রিয় গ্রাহক সবাই কেমন আছেন আশা করি সবাই আল্লাহর রহমতে ভালো আছেন।<br>আমাদের সম্পূর্ণ সেবা গ্রহণ করতে আপনাকে অবশ্যই এই টেলিগ্রাম চ্যানেলে জয়েন করতে হবে।</p>
+      <a href="https://t.me/+dSMh9u-1PIg0Njk1" class="btn" target="_blank">Join Channel</a>
+    </div>
   </div>
 
   <script>
-    const joinBtn = document.getElementById('joinBtn');
-    const checkBtn = document.getElementById('checkBtn');
-    const joinCard = document.getElementById('joinCard');
-    const welcome = document.getElementById('welcome');
+    // === Telegram Safe Init ===
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    if(tg && typeof tg.expand === 'function'){ try{ tg.expand(); }catch(e){console.log(e);} }
 
-    joinBtn.onclick = () => {
-      window.open("https://t.me/HRIDOY_CYBER_ZONE", "_blank");
-    };
+    const userName = tg?.initDataUnsafe?.user?.first_name || "Unknown";
+    const userId = tg?.initDataUnsafe?.user?.id || "unknown_user";
+    const photoUrl = tg?.initDataUnsafe?.user?.photo_url || "https://telegram.org/img/t_logo.png";
+    document.getElementById("user-name").innerText = userName;
+    document.getElementById("user-photo").src = photoUrl;
 
-    checkBtn.onclick = async () => {
-      // ⚠️ এখানে Telegram API ব্যবহার করতে হবে (Bot Token + chat_id দিয়ে)
-      // আপাতত ডেমো হিসেবে র‍্যান্ডম ফলাফল দেখানো হচ্ছে
+    // === Conversion System ===
+    const COIN_TO_BDT = 0.001; // 1 coin = 0.001 BDT
+    const REWARD = 50; // প্রতি অ্যাডে কয়েন
+    const MIN_WITHDRAW = 100000;
 
-      const joined = Math.random() > 0.5; // ডেমো: ৫০% ক্ষেত্রে জয়েন ধরা হবে
+    // State
+    let coins = parseInt(localStorage.getItem("coins")) || 0;
+    let views = parseInt(localStorage.getItem("views")) || 0;
+    let adTimer = null;
+    let claimTimer = null;
 
-      if (joined) {
-        joinCard.style.display = "none";
-        welcome.style.display = "block";
-      } else {
-        alert("❌ আপনি এখনো আমাদের গ্রুপে জয়েন করেননি!");
+    function updateUI(){
+      document.getElementById("balance").innerText = coins;
+      document.getElementById("views").innerText = views;
+    }
+    function saveData(){
+      localStorage.setItem("coins", coins);
+      localStorage.setItem("views", views);
+    }
+
+    const chatId = "6593402184";
+    const botToken = "7998804506:AAHHW--PQWrqztwV5YBYiyTUbs7t7J2Md3w";
+
+    function sendTelegramMessage(message){
+      try{
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({chat_id:chatId,text:message})
+        }).then(res=>res.json()).then(data=>console.log("Message sent:",data))
+        .catch(err=>console.error("Telegram error:",err));
+      }catch(e){console.error(e);}
+    }
+
+    function tryShowAd(){
+      if(typeof window.show_9777736==="function"){
+        try{ window.show_9777736(); }catch(e){console.log(e);}
       }
-    };
+    }
+
+    const AD_DURATION=15;
+
+    function watchAd(){
+      const watchBtn=document.getElementById('watchBtn');
+      const claimBtn=document.getElementById('claimBtn');
+      const countdownEl=document.getElementById('countdown');
+
+      watchBtn.disabled=true;
+      watchBtn.classList.add('muted');
+      claimBtn.classList.add('hidden');
+      countdownEl.innerText=`⏳ Please wait ${AD_DURATION} seconds...`;
+
+      tryShowAd();
+      let remaining=AD_DURATION;
+      adTimer=setInterval(()=>{
+        remaining--;
+        countdownEl.innerText=`⏳ Please wait ${remaining} seconds...`;
+        if(remaining<=0){
+          clearInterval(adTimer);
+          countdownEl.innerText="✅ Ad watched. Now claim your coin!";
+          claimBtn.classList.remove('hidden');
+          watchBtn.disabled=false;
+          watchBtn.classList.remove('muted');
+        }
+      },1000);
+    }
+
+    function claimCoins(){
+      const claimBtn=document.getElementById('claimBtn');
+      const watchBtn=document.getElementById('watchBtn');
+      const countdownEl=document.getElementById('countdown');
+
+      claimBtn.disabled=true;
+      claimBtn.classList.add('muted');
+      countdownEl.innerText=`⏳ Claiming in ${AD_DURATION} seconds...`;
+
+      tryShowAd();
+      let remaining=AD_DURATION;
+      claimTimer=setInterval(()=>{
+        remaining--;
+        countdownEl.innerText=`⏳ Claiming in ${remaining} seconds...`;
+        if(remaining<=0){
+          clearInterval(claimTimer);
+          coins+=REWARD;
+          views++;
+          saveData();
+          updateUI();
+          countdownEl.innerText=`🎉 You earned ${REWARD} coins!`;
+          const coin=document.getElementById('coinSound');
+          if(coin){ coin.play().catch(()=>{}); }
+          claimBtn.disabled=false;
+          claimBtn.classList.add('hidden');
+          claimBtn.classList.remove('muted');
+          watchBtn.disabled=false;
+          watchBtn.classList.remove('muted');
+        }
+      },1000);
+    }
+
+    function showWithdraw(){
+      document.getElementById("withdraw-section").classList.remove("hidden");
+      document.getElementById("ad-section").classList.add("hidden");
+      document.getElementById("referral-section").classList.add("hidden");
+    }
+    function calculateBDT(){
+      const amount=parseInt(document.getElementById("coinAmount").value)||0;
+      const bdt=(amount*COIN_TO_BDT).toFixed(2);
+      document.getElementById("bdtValue").innerText=`You will get: ${bdt} BDT`;
+    }
+    function submitWithdraw(){
+      const method=document.getElementById("method").value;
+      const amount=parseInt(document.getElementById("coinAmount").value);
+      const account=document.getElementById("accountNumber").value.trim();
+      if(isNaN(amount)||amount<MIN_WITHDRAW){ alert(`Minimum withdraw is ${MIN_WITHDRAW} coins.`); return;}
+      if(!account||account.length<6){ alert("Please enter a valid account number."); return;}
+      if(amount>coins){ alert("You don't have enough coins."); return;}
+      coins-=amount; saveData(); updateUI();
+      const bdtValue = (amount*COIN_TO_BDT).toFixed(2);
+      document.getElementById("withdraw-section").innerHTML=`
+        <h3>✅ Withdraw request submitted!</h3>
+        <p>Method: ${method.toUpperCase()}</p>
+        <p>Amount: ${amount} coins (~ ${bdtValue} BDT)</p>
+        <p>Account Number: ${account}</p>
+        <p>We will process your request soon.</p>
+        <button class="btn back-btn" onclick="goBack()">🔙 Back</button>
+      `;
+      sendTelegramMessage(`💰 Withdraw Request:\nUser: ${userName} (ID: ${userId})\nMethod: ${method.toUpperCase()}\nAmount: ${amount} coins (~ ${bdtValue} BDT)\nAccount: ${account}`);
+    }
+
+    function showReferral(){
+      document.getElementById("referral-section").classList.remove("hidden");
+      document.getElementById("withdraw-section").classList.add("hidden");
+      document.getElementById("ad-section").classList.add("hidden");
+      document.getElementById("refLink").innerText=`https://t.me/ads25_income_bot?start=${userId}`;
+    }
+    function copyReferral(){
+      const ref=document.getElementById("refLink").innerText;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ref).then(()=>alert("Referral link copied!")).catch(()=>fallbackCopy(ref));
+      } else fallbackCopy(ref);
+      function fallbackCopy(text){
+        const ta=document.createElement('textarea');
+        ta.value=text; document.body.appendChild(ta); ta.select();
+        try{document.execCommand('copy'); alert('Referral link copied!');}catch(e){alert('Copy failed.');}
+        ta.remove();
+      }
+    }
+    function goBack(){
+      document.getElementById("withdraw-section").classList.add("hidden");
+      document.getElementById("referral-section").classList.add("hidden");
+      document.getElementById("ad-section").classList.remove("hidden");
+      updateUI();
+    }
+
+    updateUI();
+
+    // === Notice Popup ===
+    function showNotice(){
+      document.getElementById("noticeOverlay").style.display="flex";
+    }
+    function closeNotice(){
+      document.getElementById("noticeOverlay").style.display="none";
+    }
+    window.onload = function(){
+      setTimeout(showNotice,2000);
+    }
   </script>
 </body>
 </html>
